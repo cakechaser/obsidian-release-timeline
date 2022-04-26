@@ -1,4 +1,96 @@
-/* Sets all the text color to red! */
-body {
-    color: red;
+table.release-timeline {
+	flex: 1 1 100%;
+    margin: 0.5em 0 0.5em 1.4em;
+    padding: 0.75em 1em;
+    font-size: 80%;
+    line-height: 0.9;
+    border-collapse: separate;
+    border-spacing: 0 1px;
+    background-color: transparent;
+	border: 1px solid #a2a9b1;
+	border-radius: 6px 6px 6px 6px;
+	display: table;
+}
+
+.release-timeline a.internal-link {
+	color: inherit;
+	text-decoration: none;
+	border-bottom: none;
+}
+
+.release-timeline .td-first.bullet-points a:before, .release-timeline .td-next.bullet-points a:before {
+  content: "\2022";
+  padding-right: 0.3em;
+}
+
+.theme-dark .release-timeline th.year-existing {
+	border-right: 1.4em solid #0BDA51;
+}
+
+.theme-dark .release-timeline th.year-nonexisting {
+	border-right: 1.4em solid #424E59;
+}
+
+.theme-light .release-timeline th.year-existing {
+	border-right: 1.4em solid #0BDA51;
+}
+
+.theme-light .release-timeline th.year-nonexisting {
+	border-right: 1.4em solid #E1E1E1;
+}
+
+.release-timeline caption {
+    padding: 0.4em 0.4em 0.2em;
+    font-size: 112.5%;
+    text-align: center;
+    white-space: nowrap;
+    display: table-caption;
+	font-weight: bold;
+}
+
+.release-timeline tbody {
+    display: table-row-group;
+    vertical-align: middle;
+}
+
+.release-timeline tr {
+    display: table-row;
+}
+
+.release-timeline th {
+    text-align: right;
+	border: none;
+    padding: 0.4em;
+    background: none;
+    font: inherit;
+    color: inherit;
+}
+
+.release-timeline td {
+    text-align: left;
+	display: table-cell;
+    vertical-align: inherit;
+	font-weight: bold;
+	border: none;
+    padding: 0.4em;
+    background: none;
+    font: inherit;
+    color: inherit;
+}
+
+.release-timeline .td-first {
+    padding: 0.4em 0.4em 0.2em;
+}
+
+.release-timeline .td-next {
+    padding: 0.2em 0.4em;
+}
+
+.release-timeline th:first-child, .release-timeline td:first-child {
+    padding-left: 0.4em;
+}
+
+.release-timeline .td-separator {
+	border: none;
+	padding-top: 0px;
 }
