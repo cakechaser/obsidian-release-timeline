@@ -20,11 +20,10 @@ export default class HelpFunctions {
     };
     
     createRowYear( { val, cls, rowspanNb } = {} ) {
-        const newTh = document.createElement("th");
+        const newTh = createEl("th", {text: val})
         newTh.setAttribute("scope", "row");
         newTh.setAttribute("class", cls);
         if ( typeof rowspanNb !== 'undefined' ) { newTh.setAttribute("rowspan", rowspanNb) };
-        newTh.innerHTML = val;
     
         return newTh;
     };
@@ -34,9 +33,8 @@ export default class HelpFunctions {
         if ( typeof cls !== 'undefined' ) { newTd.setAttribute("class", cls) };
         newTd.classList.add("bullet-points");
         
-        const newLink = createEl("a", {cls: "internal-link"});
+        const newLink = createEl("a", {cls: "internal-link", text: val});
         newLink.setAttribute("data-href", val);
-        newLink.innerHTML = val;
         
         newTd.appendChild(newLink);
 
@@ -56,8 +54,7 @@ export default class HelpFunctions {
     
     createErrorMsg(errorText) {
         const errorTbl = createEl("table", { cls: "release-timeline" } );
-        const newI = document.createElement("i");
-        newI.innerHTML = errorText;
+        const newI = createEl("i", {text: errorText})
         errorTbl.appendChild(newI);
     
         return errorTbl;
