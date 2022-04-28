@@ -1,24 +1,24 @@
 import { App, Editor, MarkdownPostProcessorContext, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, SearchMatches, Setting } from 'obsidian';
-import MyPlugin from "./main";
+import ReleaseTimeline from "./main";
 
-export interface MyPluginSettings {
+export interface ReleaseTimelineSettings {
 	defaultSortOrder: string;
 	collapseEmptyYears: boolean;
     bulletPoints: boolean;
 	collapseLimit: string
 }
 
-export const DEFAULT_SETTINGS: MyPluginSettings = {
-	defaultSortOrder: 'asc',
+export const DEFAULT_SETTINGS: ReleaseTimelineSettings = {
+	defaultSortOrder: 'desc',
 	collapseEmptyYears: false,
     bulletPoints: true,
 	collapseLimit: '2'
 }
 
 export class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+	plugin: ReleaseTimeline;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: ReleaseTimeline) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}

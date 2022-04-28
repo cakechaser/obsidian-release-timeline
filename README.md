@@ -1,73 +1,55 @@
-## Obsidian Sample Plugin
+# Release Timeline for Obsidian
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+A release timeline inspired by the [Wikipedia timeline of release years](https://en.wikipedia.org/wiki/Template:Timeline_of_release_years).
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+This plugin works only with [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview) installed.
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+<img src="assets/timeline.png" width="270">
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Changes the default font color to red using `styles.css`.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+## How to use
 
-### First time developing plugins?
+### 1. Populate information about the year in note metadata.
 
-Quick starting guide for new plugin devs:
+Plugin will automatically extract the year from the provided date.
+Different date formats are supported, including: `2022`, `2022-12-31`, `2022-12`, `31/12/2022`.
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+<img src="assets/release%20year.png" width="270">
 
-### Releasing new releases
+### 2. Create a `release-timeline` codeblock to create a timeline.
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+Release Timeline uses syntax compatible with [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview), which should be familiar to existing Dataview users.
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+Any **query written for Release Timeline** should also be a **valid Dataview query**, so you can change the codeblock type to `dataview` at any point to check the returned results.
 
-### Adding your plugin to the community plugin list
+Query example:
+~~~markdown
+```release-timeline
+table 
+release_year
+from [[CRPG]] and [[Isometric games]]
+sort desc
+```
+~~~
 
-- Check https://github.com/obsidianmd/obsidian-releases/blob/master/plugin-review.md
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+Query elements:
+- `table` - (optional) may be present in the beginning of each query for compatibility with Dataview.
+- `field_name` - name of the field in the notes metadata containing the year or date. `release_year` in the example above.
+- `from ...` - conditions defining the notes that will be used to build the timeline. Syntax is the same as in Dataview.
+- `sort (asc|desc)` - (optional) sort order of the items in the timeline. If not provided, the default order from plugin settings will be used (desc by default).
 
-### How to use
+## Options
+- **Default sort order**
+  - If `sort` is not provided in the query block, sort order selected in settings will be used (ascending or descending).
 
-- Clone this repo.
-- `npm i` or `yarn` to install dependencies
-- `npm run dev` to start compilation in watch mode.
+- **Collapse empty years**
+  - When enabled, collapses multiple consecutive empty years into one.
+  - With 'Collapse empty years limit' it's possible to specify the minumum number of consecutive years to be collapsed.
+  - <img src="assets/collapse%20years.png" width="500">
 
-### Manually installing the plugin
+- **Bullet points**
+  - Shows bullet points for years with multiple items.
+  - <img src="assets/bullets.png" width="500">
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-### Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
-
-
-### API Documentation
-
-See https://github.com/obsidianmd/obsidian-api
+## Known issues
+1. If a note with the release timeline codeblock is opened when Obsidian starts, it will not be rendered. Switch to another note and back to view the timeline.
+2. Chaning settings other than 'Bullet points' will not re-render the timeline. Switch to another note and back to view the updated timeline.

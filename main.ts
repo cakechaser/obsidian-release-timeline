@@ -1,11 +1,10 @@
 import { App, Editor, MarkdownPostProcessorContext, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { getAPI, isPluginEnabled, DataviewAPI } from "obsidian-dataview";
 import HelpFunctions from "functions";
-import { MyPluginSettings, DEFAULT_SETTINGS, SampleSettingTab } from "settings";
-// Remember to rename these classes and interfaces!
+import { ReleaseTimelineSettings, DEFAULT_SETTINGS, SampleSettingTab } from "settings";
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class ReleaseTimeline extends Plugin {
+	settings: ReleaseTimelineSettings;
 	
 	HelpFunctions = new HelpFunctions(this);
 	
@@ -13,16 +12,11 @@ export default class MyPlugin extends Plugin {
 		
 		await this.loadSettings();
 
-		console.log("loading timeline-test");
-		
-		//let testEnabled = isPluginEnabled(this.app);
+		console.log("loading obsidian-release-timeline");
 		
 		this.addSettingTab(new SampleSettingTab(this.app, this));
 	    
-		this.registerMarkdownCodeBlockProcessor('timeline-test', async (content: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
-			
-			//get results from
-			//let results = getDataviewResults(content, dv);
+		this.registerMarkdownCodeBlockProcessor('release-timeline', async (content: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
 
 			let timelineTable = this.HelpFunctions.renderTimeline(content);
 
@@ -53,20 +47,3 @@ export default class MyPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 }
-
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
-
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
-}
-

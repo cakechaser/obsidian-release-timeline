@@ -1,13 +1,13 @@
-import MyPlugin from "main";
+import ReleaseTimeline from "main";
 import { getAPI, isPluginEnabled, DataviewAPI } from "obsidian-dataview";
 import { moment } from "obsidian";
 import { create } from "domain";
 
 export default class HelpFunctions {
     
-    plugin: MyPlugin;
+    plugin: ReleaseTimeline;
 
-    constructor(plugin: MyPlugin) {
+    constructor(plugin: ReleaseTimeline) {
         this.plugin = plugin;
     }
 
@@ -185,7 +185,7 @@ export default class HelpFunctions {
 
     parseQueryYear(content: string) {
 
-        let regExYear = /(?:table|table without id)(.*?)(?=from)/;
+        let regExYear = /(?:table|table without id)?(.*?)(?=from)/;
         let queryYearColumn = content.match(regExYear)[1].trim();
 
         return queryYearColumn;
