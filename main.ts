@@ -10,6 +10,13 @@ export default class ReleaseTimeline extends Plugin {
 	
 	async onload() {
 		
+		this.app.workspace.onLayoutReady( () => {
+			const isDataviewInstalled = !!getAPI();
+			if (!isDataviewInstalled) {
+  				new Notice("The Release Timeline plugin requires Dataview to properly function.");
+			}
+		});
+
 		await this.loadSettings();
 
 		console.log("loading obsidian-release-timeline");
@@ -25,7 +32,7 @@ export default class ReleaseTimeline extends Plugin {
 
 			let bulletOption = this.settings.bulletPoints;
 
-			let matches = document.querySelectorAll(".td-first, .td-next");
+			let matches = el.querySelectorAll(".td-first, .td-next");
         	matches.forEach(function(match) {
 				match.classList.toggle('bullet-points', bulletOption);
         	});

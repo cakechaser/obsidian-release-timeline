@@ -222,7 +222,7 @@ export default class HelpFunctions {
 
         const dv = getAPI();
 
-        if ( typeof dv == 'undefined' ) { return this.createErrorMsg('Dataview is not installed. This plugin requires Dataview to work properly.'); }
+        if ( typeof dv == 'undefined' ) { return this.createErrorMsg('Dataview is not installed. The Release Timeline plugin requires Dataview to properly function.'); }
 
         content = content.replace(/[\r\n]+/g," ").toLocaleLowerCase();
 		
