@@ -4,7 +4,7 @@ A release timeline inspired by the [Wikipedia timeline of release years](https:/
 
 This plugin works only with [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview) installed.
 
-<img src="assets/timeline.png" width="270">
+<img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/timeline.png" width="270">
 
 ## How to use
 
@@ -13,7 +13,7 @@ This plugin works only with [Obsidian Dataview](https://github.com/blacksmithgu/
 Plugin will automatically extract the year from the provided date.
 Different date formats are supported, including: `2022`, `2022-12-31`, `2022-12`, `31/12/2022`.
 
-<img src="assets/release%20year.png" width="270">
+<img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/release%20year.png" width="270">
 
 ### 2. Create a `release-timeline` codeblock to create a timeline.
 
@@ -44,11 +44,11 @@ Query elements:
 - **Collapse empty years**
   - When enabled, collapses multiple consecutive empty years into one.
   - With 'Collapse empty years limit' it's possible to specify the minumum number of consecutive years to be collapsed.
-  - <img src="assets/collapse%20years.png" width="500">
+  - <img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/collapse%20years.png" width="500">
 
 - **Bullet points**
   - Shows bullet points for years with multiple items.
-  - <img src="assets/bullets.png" width="500">
+  - <img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/bullets.png" width="500">
 
 ## Known issues
 1. If a note with the release timeline codeblock is opened when Obsidian starts, it will not be rendered. Switch to another note and back to view the timeline.
