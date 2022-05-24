@@ -247,7 +247,7 @@ export default class HelpFunctions {
         //get results from dataview
         try {
             var results = dv.pages(queryFrom)
-                                        .filter(k => typeof k[queryYearColumn] !== 'undefined')
+                                        .filter(k => typeof k[queryYearColumn] !== 'undefined' && k[queryYearColumn] !== null)
                                         .mutate(k => k[queryYearColumn] = moment( k[queryYearColumn].toString() ).format('YYYY') )
                                         .filter(k => k[queryYearColumn] != "Invalid date")
                                         .mutate(k => k[queryYearColumn] = Number(k[queryYearColumn]) )
