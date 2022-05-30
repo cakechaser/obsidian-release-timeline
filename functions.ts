@@ -28,13 +28,13 @@ export default class HelpFunctions {
         return newTh;
     };
     
-    createRowItem( { val, cls } = {} ) {
+    createRowItem( { fileName, fileAlias, cls } = {} ) {
         const newTd = document.createElement("td");
         if ( typeof cls !== 'undefined' ) { newTd.setAttribute("class", cls) };
         newTd.classList.add("bullet-points");
         
-        const newLink = createEl("a", {cls: "internal-link", text: val});
-        newLink.setAttribute("data-href", val);
+        const newLink = createEl("a", {cls: "internal-link", text: fileAlias});
+        newLink.setAttribute("data-href", fileName);
         
         newTd.appendChild(newLink);
 
@@ -60,7 +60,7 @@ export default class HelpFunctions {
         return errorTbl;
     };
     
-    createTimelineTable(timeline) {
+    createTimelineTable(timeline, aliasName) {
     
         const newTbl = document.createElement("table");
         newTbl.classList.add("release-timeline")
@@ -86,9 +86,13 @@ export default class HelpFunctions {
     
         timeline.forEach(item => {
             
+            //year
             let key = item.key;
-            let value = item.rows.values.map(k => k.file.name).sort();
-    
+            //array of titles, sorted by name
+            //let value = item.rows.values.map(k => k.file.name).sort();
+
+            let value = item.rows.values.map(k => [k.file.name, typeof k[aliasName] !== 'undefined' ? k[aliasName] : k.file.name]);//.sort((a, b) => b[0] - a[0]);
+            
             //create separator if previous row was long
             if (isLongRow == 1) { newTbody.appendChild(this.createRowSeparator()) };
     
@@ -105,7 +109,7 @@ export default class HelpFunctions {
                     let yearRange = key > prevYear ? `${prevYear + 1} - ${key - 1}` : `${key + 1} - ${prevYear - 1}`;
     
                     const rowYear = this.createRowYear( { val: yearRange, cls: 'year-nonexisting' } );
-                    const rowItem = this.createRowItem( { val: "" } );
+                    const rowItem = this.createRowItem( { fileName: "", fileAlias: "" } );
                     const newRow = this.createNewRow(rowYear, rowItem);
                     newTbody.appendChild(newRow);
     
@@ -117,7 +121,7 @@ export default class HelpFunctions {
                     let i = (key > prevYear) ? prevYear + j : prevYear - j;
     
                     const rowYear = this.createRowYear( { val: i, cls: 'year-nonexisting' } );
-                    const rowItem = this.createRowItem( { val: "" } );
+                    const rowItem = this.createRowItem( { fileName: "", fileAlias: "" } );
                     const newRow = this.createNewRow(rowYear, rowItem);
                     newTbody.appendChild(newRow);
                     };
@@ -135,7 +139,7 @@ export default class HelpFunctions {
                 isLongRow = 0;
                 
                 const rowYear = this.createRowYear( { val: key, cls: 'year-existing' } );
-                const rowItem = this.createRowItem( { val: value[0] } );
+                const rowItem = this.createRowItem( { fileName: value[0][0], fileAlias: value[0][1] } );
                 const newRow = this.createNewRow(rowYear, rowItem);
                 newTbody.appendChild(newRow);
     
@@ -145,16 +149,17 @@ export default class HelpFunctions {
                 //create separator if prev row was short, but this one is long
                 if (isLongRow == 0) { newTbody.appendChild(this.createRowSeparator()); };
                 isLongRow = 1;
-    
+                
+                //create 1st row
                 const rowYear = this.createRowYear( { val: key, cls: 'year-existing', rowspanNb: value.length } );
-                const rowItem = this.createRowItem( { val: value[0], cls: "td-first" } );
+                const rowItem = this.createRowItem( { fileName: value[0][0], fileAlias: value[0][1], cls: "td-first" } );
                 const newRow = this.createNewRow(rowYear, rowItem);
                 newTbody.appendChild(newRow);
                 
                 //create 2nd+ rows
                 for (let i = 1; i < value.length; i++) {
     
-                    const rowItem = this.createRowItem( { val: value[i], cls: "td-next" } );
+                    const rowItem = this.createRowItem( { fileName: value[i][0], fileAlias: value[i][1], cls: "td-next" } );
                     const newRow = this.createNewRow(rowItem);
                     newTbody.appendChild(newRow);
     
@@ -183,7 +188,8 @@ export default class HelpFunctions {
     parseQueryYear(content: string) {
 
         let regExYear = /(?:table|table without id)?(.*?)(?=from)/;
-        let queryYearColumn = content.match(regExYear)[1].trim();
+        let queryYearColumnMatch = content.match(regExYear)[1].trim();
+        let queryYearColumn = queryYearColumnMatch.split(',')[0];
 
         return queryYearColumn;
     };
@@ -218,6 +224,21 @@ export default class HelpFunctions {
 
     };
 
+    parseAliasName(content: string) {
+
+        let regExAliasName = /(?:table|table without id)?,(.*?)(?=from)/;
+
+        let queryAliasMatch = content.match(regExAliasName);
+
+        if ( queryAliasMatch == null) {
+            return null;
+        }
+        else {
+            return content.match(regExAliasName)[1].trim();
+        }
+
+    }
+
     renderTimeline(content: string) {
 
         const dv = getAPI();
@@ -243,6 +264,8 @@ export default class HelpFunctions {
         //let queryWhere = this.parseQueryWhere(content);
                 
         let querySortOrder = this.parseQuerySortOrder(content);
+
+        let aliasName = this.parseAliasName(content);
         
         //get results from dataview
         try {
@@ -262,7 +285,7 @@ export default class HelpFunctions {
             return this.createErrorMsg("No results");
         }
         else {
-            return this.createTimelineTable(results);
+            return this.createTimelineTable(results, aliasName);
         }
 
     }
