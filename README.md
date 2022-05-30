@@ -13,7 +13,7 @@ This plugin works only with [Obsidian Dataview](https://github.com/blacksmithgu/
 Plugin will automatically extract the year from the provided date.
 Different date formats are supported, including: `2022`, `2022-12-31`, `2022-12`, `31/12/2022`.
 
-<img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/release%20year.png" width="270">
+<img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/release%20year.png" width="370">
 
 ### 2. Create a `release-timeline` codeblock to create a timeline.
 
@@ -25,7 +25,7 @@ Query example:
 ~~~markdown
 ```release-timeline
 table 
-release_year
+release_year, alias_name
 from [[CRPG]] and [[Isometric games]]
 sort desc
 ```
@@ -33,7 +33,8 @@ sort desc
 
 Query elements:
 - `table` - (optional) may be present in the beginning of each query for compatibility with Dataview.
-- `field_name` - name of the field in the notes metadata containing the year or date. `release_year` in the example above.
+- `year_field` - name of the field in the notes metadata containing the year or date. `release_year` in the example above.
+- `alias_field` - (optional) name of the field in the notes metadata containing the alternative name of the note. Useful in case you want to show titles with characters not allowed in file names, such as `:`. In case some notes don't contain a field with this name, the standard name of the note will be used.
 - `from ...` - conditions defining the notes that will be used to build the timeline. Syntax is the same as in Dataview.
 - `sort (asc|desc)` - (optional) sort order of the items in the timeline. If not provided, the default order from plugin settings will be used (desc by default).
 
