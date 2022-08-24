@@ -1,6 +1,6 @@
 {
   "name": "obsidian-release-timeline",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "description": "Release timeline rendered based on notes metadata with a dataview-like syntax.",
   "main": "main.js",
   "dependencies": {
