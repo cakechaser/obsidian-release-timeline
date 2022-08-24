@@ -25,7 +25,7 @@ export default class ReleaseTimeline extends Plugin {
 	    
 		this.registerMarkdownCodeBlockProcessor('release-timeline', async (content: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
 
-			let timelineTable = this.HelpFunctions.renderTimeline(content);
+			let timelineTable = await this.HelpFunctions.renderTimeline(content);
 
 			//render
 			el.appendChild(timelineTable);

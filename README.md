@@ -25,17 +25,19 @@ Query example:
 ~~~markdown
 ```release-timeline
 table 
-release_year, alias_name
+year_field, alias_field
 from [[CRPG]] and [[Isometric games]]
+where year_field > 2000
 sort desc
 ```
 ~~~
 
 Query elements:
-- `table` - (optional) may be present in the beginning of each query for compatibility with Dataview.
-- `year_field` - name of the field in the notes metadata containing the year or date. `release_year` in the example above.
+- `table` - needs to be present in the beginning of each query
+- `year_field` - name of the field in the notes metadata containing the year or date.
 - `alias_field` - (optional) name of the field in the notes metadata containing the alternative name of the note. Useful in case you want to show titles with characters not allowed in file names, such as `:`. In case some notes don't contain a field with this name, the standard name of the note will be used.
-- `from ...` - conditions defining the notes that will be used to build the timeline. Syntax is the same as in Dataview.
+- `from ...` - (optional) conditions defining the notes that will be used to build the timeline. Syntax is the same as in Dataview.
+- `where ...` - (optional) conditions definining filters applied in the query. Syntax is the same as in Dataview.
 - `sort (asc|desc)` - (optional) sort order of the items in the timeline. If not provided, the default order from plugin settings will be used (desc by default).
 
 ## Options

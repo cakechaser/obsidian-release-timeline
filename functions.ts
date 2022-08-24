@@ -11,47 +11,6 @@ export default class HelpFunctions {
         this.plugin = plugin;
     }
 
-    createRowSeparator() {
-        const newTdSeparator = createEl("td", { cls: "td-separator" });
-        const rowSeparator = createEl("tr");
-        rowSeparator.appendChild(newTdSeparator);
-    
-        return rowSeparator;
-    };
-    
-    createRowYear( { val, cls, rowspanNb } = {} ) {
-        const newTh = createEl("th", {text: val})
-        newTh.setAttribute("scope", "row");
-        newTh.setAttribute("class", cls);
-        if ( typeof rowspanNb !== 'undefined' ) { newTh.setAttribute("rowspan", rowspanNb) };
-    
-        return newTh;
-    };
-    
-    createRowItem( { fileName, fileAlias, cls } = {} ) {
-        const newTd = document.createElement("td");
-        if ( typeof cls !== 'undefined' ) { newTd.setAttribute("class", cls) };
-        newTd.classList.add("bullet-points");
-        
-        const newLink = createEl("a", {cls: "internal-link", text: fileAlias});
-        newLink.setAttribute("data-href", fileName);
-        
-        newTd.appendChild(newLink);
-
-        return newTd;
-    };
-    
-    createNewRow(...args) {
-        
-        const newRow = document.createElement("tr");
-    
-        args.forEach((arg, index) => {
-            newRow.appendChild(arg);
-        });
-    
-        return newRow;
-    };
-    
     createErrorMsg(errorText) {
         const errorTbl = createEl("table", { cls: "release-timeline" } );
         const newI = createEl("i", {text: errorText})
@@ -59,8 +18,53 @@ export default class HelpFunctions {
     
         return errorTbl;
     };
-    
-    createTimelineTable(timeline, aliasName) {
+
+    async renderTimeline(content: string) {
+
+        const dv = getAPI();
+
+        if ( typeof dv == 'undefined' ) { return this.createErrorMsg('Dataview is not installed. The Release Timeline plugin requires Dataview to properly function.'); }
+
+        var sortOrder = this.parseQuerySortOrder(content);
+        
+        //get results from dataview
+        try {
+            
+            var results;
+            var results0 = await dv.query(content);
+            let a = results0.value.values;
+            
+            let b = a.filter(x => typeof x[1] !== 'undefined' && x[1] !== null);
+            //b.forEach(x => x[1].constructor.name == 'DateTime' ? x[1]=x[1].c.year : x[1]=x[1]);
+
+            b.forEach(x => x[1] = moment( x[1].toString() ).format('YYYY'))
+            b = b.filter(x => x[1] != "Invalid date")
+
+            //b = b.filter(x => typeof x != 'number')
+
+            b.forEach(x => x[0] = x[0].path.match(/([^\/]+(?=\.)).md/)[1]);
+            b.forEach(x => x[2]==null ? x[2]=x[0] : 1);
+
+            results = dv.array(b);
+            results = results.groupBy(x => x[1]);
+
+            results = results.sort(k => k.key, sortOrder);
+
+        }
+        catch(error) {
+            return this.createErrorMsg("Error from dataview: " + error.message)
+        }
+
+        if (results.length == 0) {
+            return this.createErrorMsg("No results");
+        }
+        else {
+            return this.createTimelineTable(results);
+        }
+
+    }
+
+    createTimelineTable(timeline) {
     
         const newTbl = document.createElement("table");
         newTbl.classList.add("release-timeline")
@@ -72,6 +76,7 @@ export default class HelpFunctions {
         let isLongRow = 0;
     
         // check if too many years are selected
+        
         let minYear = Math.min(...timeline.key.values);
         let maxYear = Math.max(...timeline.key.values);
     
@@ -90,9 +95,11 @@ export default class HelpFunctions {
             let key = item.key;
             //array of titles, sorted by name
             //let value = item.rows.values.map(k => k.file.name).sort();
-
-            let value = item.rows.values.map(k => [k.file.name, typeof k[aliasName] !== 'undefined' ? k[aliasName] : k.file.name]);//.sort((a, b) => b[0] - a[0]);
+            //[[filename1, alias1], [filename2, alias2], ..]
+            //let value = item.rows.values.map(k => [k.file.name, typeof k[aliasName] !== 'undefined' ? k[aliasName] : k.file.name]);//.sort((a, b) => b[0] - a[0]);
             
+            let value = item.rows.values.map(k => [k[0], k[2]]);
+
             //create separator if previous row was long
             if (isLongRow == 1) { newTbody.appendChild(this.createRowSeparator()) };
     
@@ -177,40 +184,54 @@ export default class HelpFunctions {
         return newTbl;
     };
 
-    parseQueryFrom(content: string) {
-        
-        let regExFrom = /(?<=from)(.*?)(where|sort|$)/;
-        let queryFrom = content.match(regExFrom)[1].trim();
-
-        return queryFrom;
+    createRowSeparator() {
+        const newTdSeparator = createEl("td", { cls: "td-separator" });
+        const rowSeparator = createEl("tr");
+        rowSeparator.appendChild(newTdSeparator);
+    
+        return rowSeparator;
     };
 
-    parseQueryYear(content: string) {
+    createRowYear( { val, cls, rowspanNb } = {} ) {
+        const newTh = createEl("th", {text: val})
+        newTh.setAttribute("scope", "row");
+        newTh.setAttribute("class", cls);
+        if ( typeof rowspanNb !== 'undefined' ) { newTh.setAttribute("rowspan", rowspanNb) };
+    
+        return newTh;
+    };
+    
+    createRowItem( { fileName, fileAlias, cls } = {} ) {
+        const newTd = document.createElement("td");
+        if ( typeof cls !== 'undefined' ) { newTd.setAttribute("class", cls) };
+        newTd.classList.add("bullet-points");
+        
+        const newLink = createEl("a", {cls: "internal-link", text: fileAlias});
+        newLink.setAttribute("data-href", fileName);
+        
+        newTd.appendChild(newLink);
 
-        let regExYear = /(?:table|table without id)?(.*?)(?=from)/;
-        let queryYearColumnMatch = content.match(regExYear)[1].trim();
-        let queryYearColumn = queryYearColumnMatch.split(',')[0];
-
-        return queryYearColumn;
+        return newTd;
     };
 
-    parseQueryWhere(content: string) {
+    createNewRow(...args) {
         
-        let regExWhere = /where(.*)/;
-        let queryWhereMatch = content.match(regExWhere);
-        
-        let queryWhere = queryWhereMatch === null ? '' : queryWhereMatch[1].trim();
-        queryWhere = queryWhere.replace(' and ', ' && ').replace(' or ', ' || ');
-
-        return queryWhere;
+        const newRow = document.createElement("tr");
+    
+        args.forEach((arg, index) => {
+            newRow.appendChild(arg);
+        });
+    
+        return newRow;
     };
-
 
     parseQuerySortOrder(content: string) {
         
         let regExSortOrder = /sort(?:.*)? (desc|asc)/;
         
         let settingsSort = this.plugin.settings.defaultSortOrder;
+
+        content = content.replace(/[\r\n]+/g," ").toLocaleLowerCase();
         
         let querySortOrderMatch = content.match(regExSortOrder);
         
@@ -223,71 +244,5 @@ export default class HelpFunctions {
         }
 
     };
-
-    parseAliasName(content: string) {
-
-        let regExAliasName = /(?:table|table without id)?,(.*?)(?=from)/;
-
-        let queryAliasMatch = content.match(regExAliasName);
-
-        if ( queryAliasMatch == null) {
-            return null;
-        }
-        else {
-            return content.match(regExAliasName)[1].trim();
-        }
-
-    }
-
-    renderTimeline(content: string) {
-
-        const dv = getAPI();
-
-        if ( typeof dv == 'undefined' ) { return this.createErrorMsg('Dataview is not installed. The Release Timeline plugin requires Dataview to properly function.'); }
-
-        content = content.replace(/[\r\n]+/g," ").toLocaleLowerCase();
-		
-        try { 
-            var queryFrom = this.parseQueryFrom(content); 
-        }
-        catch(error) { 
-            return this.createErrorMsg("Error parsing the 'FROM' statement"); 
-        }
-        
-        try { 
-            var queryYearColumn = this.parseQueryYear(content); 
-        }
-        catch(error) { 
-            return this.createErrorMsg("Error getting the 'Year' field"); 
-        }
-        
-        //let queryWhere = this.parseQueryWhere(content);
-                
-        let querySortOrder = this.parseQuerySortOrder(content);
-
-        let aliasName = this.parseAliasName(content);
-        
-        //get results from dataview
-        try {
-            var results = dv.pages(queryFrom)
-                                        .filter(k => typeof k[queryYearColumn] !== 'undefined' && k[queryYearColumn] !== null)
-                                        .mutate(k => k[queryYearColumn] = moment( k[queryYearColumn].toString() ).format('YYYY') )
-                                        .filter(k => k[queryYearColumn] != "Invalid date")
-                                        .mutate(k => k[queryYearColumn] = Number(k[queryYearColumn]) )
-                                        .groupBy(k => k[queryYearColumn])
-                                        .sort(k => k.key, querySortOrder);
-        }
-        catch(error) {
-            return this.createErrorMsg("Error from dataview: " + error.message)
-        }
-
-        if (results.length == 0) {
-            return this.createErrorMsg("No results");
-        }
-        else {
-            return this.createTimelineTable(results, aliasName);
-        }
-
-    }
 
 }
