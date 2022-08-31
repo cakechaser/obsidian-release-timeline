@@ -94,3 +94,11 @@ table.release-timeline {
 	border: none;
 	padding-top: 0px;
 }
+
+.release-timeline .line-separator {
+	border-bottom: 1px solid #a2a9b1;;
+}
+
+.release-timeline .year-header {
+    font-weight: bold;
+}
