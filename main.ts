@@ -39,6 +39,22 @@ export default class ReleaseTimeline extends Plugin {
 
 		});
 
+		this.registerMarkdownCodeBlockProcessor('release-timeline-month', async (content: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
+
+			let timelineTable = await this.HelpFunctions.renderTimelineMonth(content);
+
+			//render
+			el.appendChild(timelineTable);
+
+			let bulletOption = this.settings.bulletPoints;
+
+			let matches = el.querySelectorAll(".td-first, .td-next");
+        	matches.forEach(function(match) {
+				match.classList.toggle('bullet-points', bulletOption);
+        	});
+
+		})
+
 	}
 	
 

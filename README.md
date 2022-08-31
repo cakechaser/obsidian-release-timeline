@@ -11,11 +11,11 @@ This plugin works only with [Obsidian Dataview](https://github.com/blacksmithgu/
 ### 1. Populate information about the year in note metadata.
 
 Plugin will automatically extract the year from the provided date.
-Different date formats are supported, including: `2022`, `2022-12-31`, `2022-12`, `31/12/2022`.
+Different date formats are supported, including: `2022`, `2022-12-31`, `2022-12`.
 
 <img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/release%20year.png" width="370">
 
-### 2. Create a `release-timeline` codeblock to create a timeline.
+### 2. Create a `release-timeline` or `release-timeline-month` codeblock to create a timeline.
 
 Release Timeline uses syntax compatible with [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview), which should be familiar to existing Dataview users.
 
@@ -44,7 +44,7 @@ Query elements:
 - **Default sort order**
   - If `sort` is not provided in the query block, sort order selected in settings will be used (ascending or descending).
 
-- **Collapse empty years**
+- **Collapse empty years** (only for year timelines)
   - When enabled, collapses multiple consecutive empty years into one.
   - With 'Collapse empty years limit' it's possible to specify the minumum number of consecutive years to be collapsed.
   - <img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/collapse%20years.png" width="500">
