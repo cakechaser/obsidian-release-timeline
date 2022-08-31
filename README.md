@@ -4,7 +4,7 @@ A release timeline inspired by the [Wikipedia timeline of release years](https:/
 
 This plugin works only with [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview) installed.
 
-<img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/timeline.png" width="550">
+<img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/timeline.png" width="650">
 
 ## How to use
 
