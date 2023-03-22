@@ -38,7 +38,7 @@ export default class HelpFunctions {
             let b = a.filter(x => typeof x[1] !== 'undefined' && x[1] !== null);
 
             //convert date values to years, get rid of non-date values like character strings
-            b.forEach(x => x[1] = moment( x[1].toString() ).format('YYYY'))
+            b.forEach(x => x[1] = moment( x[1].toString(), 'Y' ).format('Y'))
             b = b.filter(x => x[1] != "Invalid date")
 
             //parse file name from path, replace path, insert to notes with empty alias
@@ -83,7 +83,8 @@ export default class HelpFunctions {
             
             //filter out null years
             let b = a.filter(x => typeof x[1] !== 'undefined' && x[1] !== null);
-            b = b.filter(x => !(typeof(x[1]) == 'number' && x[1]>=0 && x[1]<=9999) )
+            //filter out years without a month
+            b = b.filter(x => !(typeof(x[1]) == 'number') );
 
             //convert date values to years, get rid of non-date values like character strings
             b.forEach(x => x[1] = moment( x[1].toString() ).format('YYYY-MM'))
@@ -114,7 +115,8 @@ export default class HelpFunctions {
 
             for(let j=0; j<monthGroup.length; j++) {
 
-                let item = monthGroup[j].yearMonth.substring(0,4);
+                //let item = monthGroup[j].yearMonth.substring(0,4);
+                let item = monthGroup[j].yearMonth.split('-')[0];
 
                 const ind = yearMonthGroup.findIndex(e => e.year === item);
                 if (ind > -1) {
