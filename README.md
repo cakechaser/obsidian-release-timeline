@@ -84,6 +84,8 @@ You can choose the minimum number of years to be collapsed.
 
 Weeks will not be displayed for months without actual data.
 
+<img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/weekly%20timeline%20collapse%20months.png" width="500">
+
 **Week formatting**
 
 Week names: "W15"
