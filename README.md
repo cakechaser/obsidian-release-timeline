@@ -1,6 +1,6 @@
 # Release Timeline for Obsidian
 
-A release timeline inspired by the [Wikipedia timeline of release years](https://en.wikipedia.org/wiki/Template:Timeline_of_release_years).
+This plugin is inspired by the [Wikipedia timeline of release years](https://en.wikipedia.org/wiki/Template:Timeline_of_release_years).
 
 This plugin works only with [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview) installed.
 
@@ -8,18 +8,24 @@ This plugin works only with [Obsidian Dataview](https://github.com/blacksmithgu/
 
 ## How to use
 
-### 1. Populate information about the year in note metadata.
+### 1. Populate information about the year in the note metadata:
 
 Plugin will automatically extract the year from the provided date.
 Different date formats are supported, including: `2022`, `2022-12-31`, `2022-12`.
 
 <img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/release%20year.png" width="370">
 
-### 2. Create a `release-timeline` or `release-timeline-month` codeblock to create a timeline.
+### 2. Add a codeblock to create a timeline:
 
-Release Timeline uses syntax compatible with [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview), which should be familiar to existing Dataview users.
+You can choose from 3 different codeblock types:
+- `release-timeline` - Year timelines
+- `release-timeline-month` - Month timelines
+- `release-timeline-week` - Week timelines
 
-Any **query written for Release Timeline** should also be a **valid Dataview query**, so you can change the codeblock type to `dataview` at any point to check the returned results.
+Release Timeline uses syntax compatible with [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview), which should be familiar if you already use Dataview.
+
+Any **query written for Release Timeline** should also be a **valid Dataview query**.
+That way you can change the codeblock type to `dataview` at any point to check the returned results.
 
 Query example:
 ~~~markdown
@@ -33,26 +39,59 @@ sort desc
 ~~~
 
 Query elements:
-- `table` - needs to be present in the beginning of each query
-- `year_field` - name of the field in the notes metadata containing the year or date.
-- `alias_field` - (optional) name of the field in the notes metadata containing the alternative name of the note. Useful in case you want to show titles with characters not allowed in file names, such as `:`. In case some notes don't contain a field with this name, the standard name of the note will be used.
-- `from ...` - (optional) conditions defining the notes that will be used to build the timeline. Syntax is the same as in Dataview.
-- `where ...` - (optional) conditions definining filters applied in the query. Syntax is the same as in Dataview.
-- `sort (asc|desc)` - (optional) sort order of the items in the timeline. If not provided, the default order from plugin settings will be used (desc by default).
+- `table`
+  - Needs to be present in the beginning of each query
+- `year_field`
+  - Name of the field in the notes metadata containing the year or date
+- `alias_field` (optional)
+  - Name of the field in the notes metadata containing an alternative name of the note
+  - Useful in case you want to show titles with characters not allowed in file names, such as `:`
+  - For notes without this field, the standard note name will be used
+- `from ...` (optional)
+  - Conditions defining the notes for building the timeline
+  - Syntax is the same as in Dataview
+- `where ...` (optional)
+  - Conditions definining filters applied in the query
+  - Syntax is the same as in Dataview
+- `sort (asc|desc)` (optional)
+  - Sort order of the items in the timeline
+  - If not provided, the default order from plugin settings will be used (desc by default)
 
 ## Options
-- **Default sort order**
-  - If `sort` is not provided in the query block, sort order selected in settings will be used (ascending or descending).
+### Common settings
+**Default sort order**
 
-- **Collapse empty years** (only for year timelines)
-  - When enabled, collapses multiple consecutive empty years into one.
-  - With 'Collapse empty years limit' it's possible to specify the minumum number of consecutive years to be collapsed.
-  - <img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/collapse%20years.png" width="500">
+If `sort` is not provided in the query block, sort order selected in settings will be used (ascending or descending).
 
-- **Bullet points**
-  - Shows bullet points for years with multiple items.
-  - <img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/bullets.png" width="500">
+**Bullet points**
+
+Shows bullet points for years with multiple entries.
+
+<img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/bullets.png" width="500">
+
+### Year timeline settings
+
+**Collapse empty years**
+
+When enabled, collapses multiple consecutive empty years into one range.
+You can choose the minimum number of years to be collapsed.
+
+<img src="https://raw.githubusercontent.com/cakechaser/obsidian-release-timeline/master/assets/collapse%20years.png" width="500">
+
+### Week timeline settings
+
+**Collapse empty months**
+
+Weeks will not be displayed for months without actual data.
+
+**Week formatting**
+
+Week names: "W15"
+
+Date names: "11-17"
+
+
 
 ## Known issues
 1. If a note with the release timeline codeblock is opened when Obsidian starts, it will not be rendered. Switch to another note and back to view the timeline.
-2. Chaning settings other than 'Bullet points' will not re-render the timeline. Switch to another note and back to view the updated timeline.
+2. Changing settings other than 'Bullet points' will not re-render the timeline. Switch to another note and back to view the updated timeline.

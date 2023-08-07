@@ -1,12 +1,16 @@
 import { App, Editor, MarkdownPostProcessorContext, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { getAPI, isPluginEnabled, DataviewAPI } from "obsidian-dataview";
-import HelpFunctions from "functions";
+import YearTimeline from "functionsYear";
+import MonthTimeline from "functionsMonth";
+import WeekTimeline from "functionsWeek";
 import { ReleaseTimelineSettings, DEFAULT_SETTINGS, SampleSettingTab } from "settings";
 
 export default class ReleaseTimeline extends Plugin {
 	settings: ReleaseTimelineSettings;
-	
-	HelpFunctions = new HelpFunctions(this);
+
+	YearTimelineFunctions = new YearTimeline(this);
+	MonthTimelineFunctions = new MonthTimeline(this);
+	WeekTimelineFunctions = new WeekTimeline(this);
 	
 	async onload() {
 		
@@ -25,7 +29,7 @@ export default class ReleaseTimeline extends Plugin {
 	    
 		this.registerMarkdownCodeBlockProcessor('release-timeline', async (content: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
 
-			let timelineTable = await this.HelpFunctions.renderTimeline(content);
+			let timelineTable = await this.YearTimelineFunctions.renderTimeline(content);
 
 			//render
 			el.appendChild(timelineTable);
@@ -41,7 +45,7 @@ export default class ReleaseTimeline extends Plugin {
 
 		this.registerMarkdownCodeBlockProcessor('release-timeline-month', async (content: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
 
-			let timelineTable = await this.HelpFunctions.renderTimelineMonth(content);
+			let timelineTable = await this.MonthTimelineFunctions.renderTimelineMonth(content);
 
 			//render
 			el.appendChild(timelineTable);
@@ -53,7 +57,23 @@ export default class ReleaseTimeline extends Plugin {
 				match.classList.toggle('bullet-points', bulletOption);
         	});
 
-		})
+		});
+
+		this.registerMarkdownCodeBlockProcessor('release-timeline-week', async (content: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
+
+			let timelineTable = await this.WeekTimelineFunctions.renderTimelineWeek(content);
+
+			//render
+			el.appendChild(timelineTable);
+
+			let bulletOption = this.settings.bulletPoints;
+
+			let matches = el.querySelectorAll(".td-next");
+        	matches.forEach(function(match) {
+				match.classList.toggle('bullet-points', bulletOption);
+        	});
+
+		});
 
 	}
 	

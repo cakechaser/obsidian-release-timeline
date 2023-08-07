@@ -12,6 +12,17 @@ table.release-timeline {
 	display: table;
 }
 
+/* weekly-timeline months border right */
+.weekly-month {
+    border-right: 1px solid #a2a9b1 !important;
+  }
+
+
+table.release-timeline {
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .release-timeline a.internal-link {
 	color: inherit;
 	text-decoration: none;
@@ -23,21 +34,23 @@ table.release-timeline {
   padding-right: 0.3em;
 }
 
-.theme-dark .release-timeline th.year-existing {
+.theme-dark .release-timeline .year-existing {
 	border-right: 1.4em solid #0BDA51;
 }
 
-.theme-dark .release-timeline th.year-nonexisting {
+.theme-dark .release-timeline .year-nonexisting {
 	border-right: 1.4em solid #424E59;
 }
 
-.theme-light .release-timeline th.year-existing {
+.theme-light .release-timeline .year-existing {
 	border-right: 1.4em solid #0BDA51;
 }
 
-.theme-light .release-timeline th.year-nonexisting {
+.theme-light .release-timeline .year-nonexisting {
 	border-right: 1.4em solid #E1E1E1;
 }
+
+/************/
 
 .release-timeline caption {
     padding: 0.4em 0.4em 0.2em;
@@ -101,4 +114,9 @@ table.release-timeline {
 
 .release-timeline .year-header {
     font-weight: bold;
+}
+
+/***** week *****/
+.release-timeline .year-nonexisting, .release-timeline .year-existing {
+    font-variant-numeric: tabular-nums;
 }

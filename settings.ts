@@ -5,14 +5,18 @@ export interface ReleaseTimelineSettings {
 	defaultSortOrder: string;
 	collapseEmptyYears: boolean;
     bulletPoints: boolean;
-	collapseLimit: string
+	collapseLimit: string;
+	collapseEmptyMonthsWeeklyTimeline: boolean;
+	weekDisplayFormat: string;
 }
 
 export const DEFAULT_SETTINGS: ReleaseTimelineSettings = {
 	defaultSortOrder: 'desc',
 	collapseEmptyYears: false,
     bulletPoints: true,
-	collapseLimit: '2'
+	collapseLimit: '2',
+	collapseEmptyMonthsWeeklyTimeline: true,
+	weekDisplayFormat: 'weekNames'
 }
 
 export class SampleSettingTab extends PluginSettingTab {
@@ -28,7 +32,7 @@ export class SampleSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Timeline settings'});
+		containerEl.createEl('h3', {text: 'Common settings'});
 
 		new Setting(containerEl)
 			.setName('Default sort order')
@@ -43,31 +47,9 @@ export class SampleSettingTab extends PluginSettingTab {
 				});
 			});
 
-		new Setting(containerEl)
-			.setName('Collapse empty years')
-			.setDesc('Consecutive empty years will be collapsed into one range like 2000-2018')
-			.addToggle((toggle) => {
-				toggle.setValue(this.plugin.settings.collapseEmptyYears);
-				toggle.onChange(async (value) => {
-					this.plugin.settings.collapseEmptyYears = value;
-					await this.plugin.saveSettings();
-				});
-			});
-
-		new Setting(containerEl)
-			.setName('Collapse empty years limit')
-			.setDesc('Minimum number of years present in a block for it to be collapsed')
-			.addText(text => text.setPlaceholder('2')
-				.setValue(this.plugin.settings.collapseLimit)
-				.onChange(async (value) => {
-					this.plugin.settings.collapseLimit = value;
-					await this.plugin.saveSettings();
-				})
-			);
-
-        new Setting(containerEl)
+			new Setting(containerEl)
             .setName('Bullet points')
-            .setDesc('Enable bullet points for years with multiple items')
+            .setDesc('Improves readability for time periods with multiple entries')
             .addToggle((toggle) => {
                 toggle.setValue(this.plugin.settings.bulletPoints);
                 toggle.onChange(async (value) => {
@@ -77,6 +59,53 @@ export class SampleSettingTab extends PluginSettingTab {
                 });
             });
 
+		containerEl.createEl('h3', {text: 'Year timeline settings'});
+
+		new Setting(containerEl)
+			.setName('Collapse empty years')
+			.setDesc('Consecutive empty years will be collapsed into one range (2000-2018)')
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.collapseEmptyYears);
+				toggle.onChange(async (value) => {
+					this.plugin.settings.collapseEmptyYears = value;
+					await this.plugin.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
+			.setName('Minimum number of years to be collapsed')
+			.addText(text => text.setPlaceholder('2')
+				.setValue(this.plugin.settings.collapseLimit)
+				.onChange(async (value) => {
+					this.plugin.settings.collapseLimit = value;
+					await this.plugin.saveSettings();
+				})
+			);
+
+		containerEl.createEl('h3', {text: 'Week timeline settings'});
+
+		new Setting(containerEl)
+			.setName('Collapse empty months')
+			.setDesc('Weeks will not be displayed for months without actual data')
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.collapseEmptyMonthsWeeklyTimeline);
+				toggle.onChange(async (value) => {
+					this.plugin.settings.collapseEmptyMonthsWeeklyTimeline = value;
+					await this.plugin.saveSettings();
+				});
+			});
+
+		new Setting(containerEl)
+			.setName('Week formatting')
+			.addDropdown( (dropdown) => {
+				dropdown.addOption("weekNames", 'Week names: "W15"');
+				dropdown.addOption("dateNames", 'Date names: "11-17"');
+				dropdown.setValue(this.plugin.settings.weekDisplayFormat);
+				dropdown.onChange(async (value) => {
+					this.plugin.settings.weekDisplayFormat = value;
+					await this.plugin.saveSettings();
+				});
+			});
 	}
 
     updateCSS() {
