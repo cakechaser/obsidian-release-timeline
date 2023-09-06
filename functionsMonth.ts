@@ -2,7 +2,7 @@ import ReleaseTimeline from "main";
 import { getAPI, isPluginEnabled, DataviewAPI } from "obsidian-dataview";
 import { moment } from "obsidian";
 import { create } from "domain";
-import { createErrorMsg, createRowSeparator, createRowSeparatorYearMonth, createRowYear, createRowItem, createNewRow, parseQuerySortOrder } from "helperFunctions";
+import { createErrorMsg, createRowSeparator, createRowSeparatorYearMonth, createRowSeparatorWeek, createRowYear, createRowItem, createNewRow, parseQuerySortOrder } from "helperFunctions";
 
 export default class MonthTimeline {
 
@@ -12,277 +12,365 @@ export default class MonthTimeline {
         this.plugin = plugin;
     }
 
-    async renderTimelineMonth(content: string) {
-        
+    async renderTimelineMonth(content) {
+
+        //get data from dataview
         const dv = getAPI();
-
         if ( typeof dv == 'undefined' ) { return createErrorMsg('Dataview is not installed. The Release Timeline plugin requires Dataview to properly function.'); }
-
-        var sortOrder = parseQuerySortOrder(content, this.plugin);
-
-        //get results from dataview
-        try {
-            
-            var results;
-            var results0 = await dv.query(content);
-            let a = results0.value.values;
-            
-            //filter out null years
-            let b = a.filter(x => typeof x[1] !== 'undefined' && x[1] !== null);
-            //filter out years without a month
-            b = b.filter(x => !(typeof(x[1]) == 'number') );
-
-            b.forEach(x => x[1] = moment( x[1].toString() ).format('YYYY-MM'))
-            b = b.filter(x => x[1] != "Invalid date")
-
-            //parse file name from path, replace path, insert to notes with empty alias
-            b.forEach(x => x[0] = x[0].path.match(/([^\/]+(?=\.)).md/)[1]);
-            b.forEach(x => x[2]==null ? x[2]=x[0] : 1);
-
-            //group by month
-            let monthGroup = [];
-
-            for(let i=0; i<b.length; i++) {
-
-                let item = b[i][1];
-                
-                const ind = monthGroup.findIndex(e => e.yearMonth === item);
-                if (ind > -1) {
-                    monthGroup[ind].values.push([ b[i][0], b[i][2] ])
-                }
-                else {
-                    monthGroup.push( {'yearMonth': item, 'values': [ [b[i][0], b[i][2]] ] } )
-                }
-            }
-            
-            //group by year
-            let yearMonthGroup = [];
-
-            for(let j=0; j<monthGroup.length; j++) {
-
-                //let item = monthGroup[j].yearMonth.substring(0,4);
-                let item = monthGroup[j].yearMonth.split('-')[0];
-
-                const ind = yearMonthGroup.findIndex(e => e.year === item);
-                if (ind > -1) {
-                    yearMonthGroup[ind].months.push( monthGroup[j] )
-                }
-                else {
-                    yearMonthGroup.push( {'year': item, 'months': [monthGroup[j]] } );
-                }
-
-            }
-
-            results = sortOrder == 'asc' ? yearMonthGroup.sort((a, b) => Number(a.year) - Number(b.year)) : yearMonthGroup.sort((a, b) => Number(b.year) - Number(a.year));
-
-        }
-        catch(error) {
-            return createErrorMsg("Error from dataview: " + error.message)
-        }
-
-        if (results.length == 0) {
-            return createErrorMsg("No results");
-        }
-        else {
-            return this.createTimelineTableMonth(results, sortOrder);
-        }
-
-    };
-
-    createTimelineTableMonth(timeline, sortOrder) {
-
-        const newTbl = document.createElement("table");
-        newTbl.classList.add("release-timeline")
         
-        //create table body
-        let newTbody = document.createElement("tbody");
-    
-        //check to create an empty row separator
-        let isLongRow = 0;
+        //filter data to remove non-dates
+        let dvResults;
+        let dvResultsFiltered;
+        try { 
+            dvResults = await dv.query(content);
+            let dvResultsValues = dvResults.value.values;
 
-        let prevYearExists = false;
-        let nextYearExists = timeline[1] !== undefined ? true : false;
-        let nextYear = timeline[1] == undefined ? undefined : Number(timeline[1].year);
-
-        timeline.forEach( (item, index) => {
-
-            nextYearExists = timeline[index+1] !== undefined ? true : false;
-            nextYear = timeline[index+1] == undefined ? undefined : Number(timeline[index+1].year);
-
-            newTbody = this.renderYearMonth(item, prevYearExists, nextYearExists, nextYear, newTbody, sortOrder);
-
-            prevYearExists = true;
+            //filter out null years
+            let a = dvResultsValues.filter( x => typeof x[1] !== 'undefined' && x[1] !== null );
             
-        });
+            //filter out years without a month
+            let b = a.filter( x => !(typeof(x[1]) == 'number') );
 
-        newTbl.appendChild(newTbody);
-    
-        return newTbl;
-        /*
-        [
-            { year: 2020, months: [
-                    { yearMonth: "Aug", values: ["Brothers", "Bastion"] },
-                    { yearMonth: "Sep", values: ["Pyre"] },
-                    { yearMonth: "Nov", values: ["Edith Finch"] } ]
-            },
-        ];
+            //filter out incorrect dates
+            dvResultsFiltered = b.filter( x => moment( x[1].toString() ).format('YYYY-MM') != "Invalid date" );
+            
+            //convert all to moment
+            dvResultsFiltered.forEach( x => x[1] = moment(x[1].toString()) );
 
-        */
+        }
+        catch(error) { 
+            return createErrorMsg("Error from dataview: " + error.message);
+        }
+        
+        //transform data to the new structure
+        const dvResultsTransformed = this.transformDvResults(dvResultsFiltered);
+        if (dvResultsTransformed.length == 0) { return createErrorMsg("No results"); }
+
+        //fill in empty months
+        const fullMonthTimelineData = this.fillInMissingMonths(dvResultsTransformed);
+        
+        //collapse empty years
+        const collapsedEmptyYearsTimelineData = this.collapseEmptyYears(fullMonthTimelineData);
+
+        //sort data
+        const sortOrder = parseQuerySortOrder(content, this.plugin);
+        const sortedTimelineData = this.sortTimelineData(collapsedEmptyYearsTimelineData, sortOrder);
+
+        //mark rows with multiple items which will need separators
+        const markedSeparatorsTimelineData = this.markSeparators(sortedTimelineData);
+
+        //render
+        const renderedTimeline = this.renderTimeline(markedSeparatorsTimelineData);
+
+        return renderedTimeline;
+
     }
 
-    renderYearMonth(item, prevYearExists, nextYearExists, nextYear, newTbody, sortOrder) {
+    transformDvResults(dvResults) {
+        
+        let transformedResults = [];
 
-        newTbody.appendChild(createRowSeparatorYearMonth('no-border'));
- 
-         let currentYear = item.year;
- 
-         if(sortOrder == 'desc') {
-             var firstMonth = moment.max(...item.months.map(o => moment(o.yearMonth)));
-             var lastMonth = moment.min(...item.months.map(o => moment(o.yearMonth)));
-         }
-         else if (sortOrder == 'asc') {
-             var firstMonth = moment.min(...item.months.map(o => moment(o.yearMonth)));
-             var lastMonth = moment.max(...item.months.map(o => moment(o.yearMonth)));
-         }
-         
- 
-         if(prevYearExists) {
-             if(sortOrder == 'asc' && firstMonth.format('MM') != '01') { firstMonth = moment([currentYear, 0]); }
-             if(sortOrder == 'desc' && firstMonth.format('MM') != '12') { firstMonth = moment([currentYear, 11]); }
-         };
- 
-         if(nextYearExists) {
-             if(sortOrder == 'asc' && lastMonth.format('MM') != '12') { lastMonth = moment([currentYear, 11]); }
-             if(sortOrder == 'desc' && lastMonth.format('MM') != '01') { lastMonth = moment([currentYear, 0]); }
-         };
-         
-         let nbRows = Math.abs(firstMonth.diff(lastMonth, 'months'))+1;
-         
- 
-         for(let q=0; q<item.months.length; q++) {
-             if (item.months[q].values.length>1){
-                 nbRows += item.months[q].values.length - 1;
-             }
-         }
-         nbRows += 1;
- 
-         let monthDiff = Math.abs(firstMonth.diff(lastMonth, 'months'));
-         let iterator = sortOrder == 'asc' ? 1 : -1;
- 
-         let isLongRow0 = false;
-         let ii = moment(firstMonth);
-         for (let qq = 0; qq<=monthDiff; qq++) {
-             
-             let ind2 = item.months.findIndex(e => e.yearMonth === ii.format('YYYY-MM'));
-             if(isLongRow0) {nbRows+=1};
- 
-             if(ind2 > -1) {
-                 isLongRow0 = false;
-                 if(item.months[ind2].values.length == 1) {}
-                 else {
-                     if(qq!=0){nbRows+=1};
-                     isLongRow0 = true;
-                 }
-             }
-             else {isLongRow0 = false;}
- 
-             ii.add(iterator , 'months');
-         };
- 
- 
-         let yearRow = createRowYear( { val: currentYear, cls: 'year-header', rowspanNb: nbRows } );
-         const newYearRow = createNewRow(yearRow);
-         newTbody.appendChild(newYearRow);
- 
-         let i = moment(firstMonth);
- 
-         let isLongRow = false;
- 
-         for (let q = 0; q<=monthDiff; q++) {
-             
-             let ind = item.months.findIndex(e => e.yearMonth === i.format('YYYY-MM'));
- 
-             if(isLongRow) {newTbody.appendChild(createRowSeparator())};
- 
-             //if month exists, create real records
-             if(ind > -1) {
-                 isLongRow = false;
-                 
-                 //create single rows
-                 if(item.months[ind].values.length == 1) {
-                     const rowYear = createRowYear( { val: i.format('MMM'), cls: 'year-existing', rowspanNb: 1 } );
-                     const rowItem = createRowItem( { fileName: item.months[ind].values[0][0], fileAlias: item.months[ind].values[0][1] } );
-                     const newRow = createNewRow(rowYear, rowItem);
- 
-                     newTbody.appendChild(newRow);
-                 }
-                 //create multiple value rows
-                 else {
-                     if(q!=0) {newTbody.appendChild(createRowSeparator())};
-                     isLongRow = true;
- 
-                     const rowYear = createRowYear( { val: i.format('MMM'), cls: 'year-existing', rowspanNb: item.months[ind].values.length } );
-                     const rowItem = createRowItem( { fileName: item.months[ind].values[0][0], fileAlias: item.months[ind].values[0][1], cls: "td-first" } );
-                     const newRow = createNewRow(rowYear, rowItem);
-                     newTbody.appendChild(newRow);
- 
-                     for (let j = 1; j<item.months[ind].values.length; j++) {
-                         const rowItem = createRowItem( { fileName: item.months[ind].values[j][0], fileAlias: item.months[ind].values[j][1], cls: "td-next" } );
-                         const newRow = createNewRow(rowItem);
-                         newTbody.appendChild(newRow);
-                     }
-                 }    
-             }
-             //if month doesn't exist, create empty records
-             else {
-                 isLongRow = false;
- 
-                 const rowYear = createRowYear( { val: i.format('MMM'), cls: 'year-nonexisting' } );
-                 const rowItem = createRowItem( { fileName: "", fileAlias: "" } );
-                 const newRow = createNewRow(rowYear, rowItem);
- 
-                 newTbody.appendChild(newRow);
-             }
- 
-             i.add(iterator , 'months');
- 
-         }
+        dvResults.forEach(item => {
 
- 
-         let yearDiff2 = Math.abs(Number(currentYear)-nextYear);
-         
-         if (nextYearExists) {
-             newTbody.appendChild(createRowSeparatorYearMonth('border'));
-         }
-         else {
-             newTbody.appendChild(createRowSeparatorYearMonth('no-border'));
-         }
- 
-         //create empty years
-         if(nextYearExists && yearDiff2>1) {
-             newTbody = this.createEmptyYears(newTbody, yearDiff2, sortOrder, currentYear);
-         }
- 
-         return newTbody;
- 
-     }
+            //const datePart = item[1].c;
+            //const yearPart = datePart.year;
+            //const monthPart = datePart.month - 1;
+            //const dayPart = datePart.day;
+            //const momentDate = moment( { year: yearPart, month: monthPart, day: dayPart } );
+            const momentDate = item[1];
 
-     createEmptyYears(newTbody, yearDiff, sortOrder, currentYear) {
-        newTbody.appendChild(createRowSeparatorYearMonth('no-border'));
- 
-             for(let j = 1; j<yearDiff; j++) {
-                 let i = sortOrder == 'asc' ? Number(currentYear)+j : Number(currentYear)-j;
- 
-                 const rowYear0 = createRowYear( { val: "", cls: 'year-header' } );
-                 const rowYear1 = createRowYear( { val: i, cls: 'year-nonexisting' } );
-                 const rowItem2 = createRowItem( { fileName: "", fileAlias: "" } );
-                 const newRow3 = createNewRow(rowYear0, rowYear1, rowItem2);
-                 newTbody.appendChild(newRow3);
-             }
- 
-             newTbody.appendChild(createRowSeparatorYearMonth('border'));
+            const newYear = moment(momentDate).format('Y');
+            const newMonth = moment(momentDate).format('Y-MM');
+            const newMonthDisplay = moment(momentDate).format('MMM');
 
-             return newTbody;
-     }
+            const fileName = item[0].path.match(/([^\/]+(?=\.)).md/)[1];
+            const aliasName = item[2] === null || item[2] === undefined ? fileName : item[2];
+
+            const pageObject = {
+                fileName: fileName,
+                aliasName: aliasName,
+                date: momentDate.format('YYYY-MM-DD')
+            };
+
+            let element = transformedResults.find(e => e.month === newMonth);
+            if (element) {
+                element.contents.push(pageObject);
+            }
+            else {
+                let newMonthObject = { 
+                    year: newYear, 
+                    month: newMonth, 
+                    monthDisplay: newMonthDisplay,
+                    contents: [ pageObject ],
+                    collapsed: false,
+                    separator: false
+                }
+    
+                //newMonthObject.monthDisplay = this.setMonthFormatting(newMonthObject);
+    
+                transformedResults.push(newMonthObject);
+            }
+
+        })
+
+        return transformedResults;
+    }
+
+    fillInMissingMonths(contentData) {
+
+        //insert empty weeks
+        let filledInData = this.insertEmptyMonthsCollapsedNo(contentData);
+
+        return filledInData;
+
+    }
+
+    insertEmptyMonthsCollapsedNo(contentData) {
+
+        let existingMonths = contentData.map(item => item.month).sort();
+        const minMonth = moment( existingMonths[0] );
+        const maxMonth = moment( existingMonths[ existingMonths.length - 1 ] );
+
+        for (let month = minMonth; month.isSameOrBefore(maxMonth); month.add(1, 'months')) {
+            
+            const monthFormatted = month.format('Y-MM');
+
+            if ( ! existingMonths.includes(monthFormatted) ) {
+
+                const newYear = moment(month).format('Y');
+                const newMonth = monthFormatted;
+                const newMonthDisplay = moment(month).format('MMM')
+
+                const newMonthObject = { 
+                    year: newYear, 
+                    month: newMonth, 
+                    monthDisplay: newMonthDisplay,
+                    contents: [],
+                    collapsed: false,
+                    separator: false
+                }
+
+                contentData.push(newMonthObject);
+            }
+        }
+
+        return contentData;
+    }
+
+    collapseEmptyYears(fullMonthTimelineData) {
+
+        let minYear = fullMonthTimelineData.reduce((min, item) => item.year < min ? item.year : min, fullMonthTimelineData[0].year);
+        let maxYear = fullMonthTimelineData.reduce((max, item) => item.year > max ? item.year : max, fullMonthTimelineData[0].year);
+
+        for (let year = moment(minYear); year.isSameOrBefore(moment(maxYear)); year.add(1, 'years')) {
+
+            const yearFormatted = year.format('Y');
+            const yearData = fullMonthTimelineData.filter(elem => elem.year == yearFormatted);
+            const itemsInYear = yearData.reduce((acc, item) => acc + item.contents.length, 0);
+
+            if (itemsInYear == 0) {
+                fullMonthTimelineData = fullMonthTimelineData.filter(elem => elem.year != yearFormatted);
+                
+                const newYear = year.format('Y');
+                const newMonth = year.format('Y-MM')
+
+                const newObject = { 
+                    year: newYear, 
+                    month: newMonth, 
+                    monthDisplay: '',
+                    contents: [],
+                    collapsed: true,
+                    separator: false
+                }
+
+                fullMonthTimelineData.push(newObject);
+            }
+
+        }
+
+        return fullMonthTimelineData;
+
+    }
+
+    sortTimelineData(fullMonthTimelineData, sortOrder) {
+
+        if (sortOrder == 'asc') {
+            //sort months
+            fullMonthTimelineData.sort( (a,b) => a.month.localeCompare(b.month) );
+
+            //sort data within the months
+            fullMonthTimelineData.forEach(item => {
+                item.contents.sort( (a,b) => a.date.localeCompare(b.date) );
+            })
+        }
+
+        if (sortOrder == 'desc') {
+            //sort weeks
+            fullMonthTimelineData.sort( (a,b) => b.month.localeCompare(a.month) );
+
+            //sort data within the months
+            fullMonthTimelineData.forEach(item => {
+                item.contents.sort( (a,b) => b.date.localeCompare(a.date) );
+            })
+        }
+
+        return fullMonthTimelineData;
+    
+    }
+
+    markSeparators(timelineData) {
+        //get scope of year
+        //go through the month items in a year
+        //if prev item or next item has data - mark as separator
+
+        for (let i = 0; i<timelineData.length; i++) {
+
+            let minusTwoMonthNbItems = timelineData[i-2]?.contents.length ?? 0;
+            let minusOneMonthNbItems = timelineData[i-1]?.contents.length ?? 0;;
+            let currMonthNbItems = timelineData[i]?.contents.length ?? 0;;
+            let plusOneMonthNbItems = timelineData[i+1]?.contents.length ?? 0;;
+            
+            let condition = 
+                ( minusOneMonthNbItems > 1 && (currMonthNbItems > 0 || minusTwoMonthNbItems > 0) )
+                || ( currMonthNbItems > 1 && (minusOneMonthNbItems > 0 || plusOneMonthNbItems > 0) );
+
+            if ( condition ) {
+                timelineData[i].separator = true;
+            }
+
+        }
+
+        return timelineData;
+
+    }
+
+    renderTimeline(sortedTimelineData) {
+        
+        let rlsTbody = document.createElement("tbody");
+        
+        let prevYearCollapsed = undefined;
+
+        //loop to render years
+        while(sortedTimelineData.length != 0) {
+            const currYear = sortedTimelineData[0].year;
+            
+            let currYearCollapsed = sortedTimelineData[0].collapsed;
+
+            //add separator
+            if (! ((currYearCollapsed == true && prevYearCollapsed == true) || prevYearCollapsed == undefined) ) {
+                const yearBorder = createRowSeparatorYearMonth('border');
+                const yearBorder2 = createRowSeparatorYearMonth('no-border');
+                rlsTbody.appendChild(yearBorder);
+                rlsTbody.appendChild(yearBorder2);
+            }
+
+            prevYearCollapsed = currYearCollapsed;
+
+            const timelineDataFilteredByYear = sortedTimelineData.filter(elem => elem.year == currYear);
+            sortedTimelineData = sortedTimelineData.filter(elem => elem.year != currYear);
+
+            if (currYearCollapsed == false) {
+
+                const htmlYearData = this.renderMonthsInYear(timelineDataFilteredByYear);
+                const yearRowSpanNb = this.calculateRowSpanYear(htmlYearData);
+
+                let htmlYearTr = createEl("tr");
+                let htmlYearTh = createEl("th", {cls: "year-header", text: currYear});
+                htmlYearTh.setAttribute("scope", "row");
+                htmlYearTh.setAttribute("rowspan", yearRowSpanNb);
+                htmlYearTr.appendChild(htmlYearTh);
+
+                rlsTbody.appendChild(htmlYearTr);
+                rlsTbody.appendChild(htmlYearData);
+            }
+            else {
+                let htmlYearTr = createEl("tr");
+                let htmlYearTd = createEl("td");
+                let htmlYearTh = createEl("th", {cls: "year-nonexisting", text: currYear});
+
+                htmlYearTr.appendChild(htmlYearTd);
+                htmlYearTr.appendChild(htmlYearTh);
+
+                rlsTbody.appendChild(htmlYearTr);
+            }
+            
+            
+        }
+
+        const rlsTbl = document.createElement("table");
+        rlsTbl.classList.add("release-timeline");
+        rlsTbl.appendChild(rlsTbody);
+
+        return(rlsTbl);
+    
+    }
+
+    renderMonthsInYear(timelineDataFilteredByYear){
+
+        let yearContainer = document.createDocumentFragment();
+
+        //loop to render weeks
+        timelineDataFilteredByYear.forEach(monthData => {
+
+            const currMonthText = monthData.monthDisplay;
+            const currMonthHasData = monthData.contents.length;
+
+            const renderSeparator = monthData.separator;
+
+            let htmlMonthTr = createEl("tr");
+            
+            //render separator for months with multiple items
+            if (renderSeparator) {
+                let newSeparator = createRowSeparatorYearMonth('no-border');
+                yearContainer.appendChild(newSeparator);
+            }
+
+            let htmlMonthTh;
+            if (currMonthHasData == 0) {
+                htmlMonthTh = createEl("th", {cls: "year-nonexisting", text: currMonthText});
+            }
+            else {
+                htmlMonthTh = createEl("th", {cls: "year-existing", text: currMonthText});
+            }
+
+            const monthRowSpanNb = this.calculateRowSpanMonth(monthData);
+            htmlMonthTh.setAttribute("scope", "row");
+            htmlMonthTh.setAttribute("rowspan", monthRowSpanNb);
+
+            htmlMonthTr.appendChild(htmlMonthTh);
+            yearContainer.appendChild(htmlMonthTr);
+
+            const createBulletPoints = monthData.contents.length;
+
+            monthData.contents.forEach(monthEvent => {
+                //create event row
+                const rowItem = createRowItem( { fileName: monthEvent.fileName, fileAlias: monthEvent.aliasName } );
+                if (createBulletPoints > 1) {
+                    rowItem.addClass('td-next');
+                }
+                const newRow = createNewRow(rowItem);
+
+                //insert event row
+                yearContainer.appendChild(newRow);
+            })
+
+        })
+
+        return yearContainer;
+
+    }
+
+    /****************/
+
+    calculateRowSpanYear(htmlYear) {
+        var trCount = htmlYear.querySelectorAll('tr').length + 1;
+        return trCount;
+    }
+
+    calculateRowSpanMonth(dataMonth) {
+        let distinctItems = dataMonth.contents.length;
+
+        return distinctItems + 1;
+    }
 
 }

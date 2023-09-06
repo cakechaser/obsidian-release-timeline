@@ -4,10 +4,10 @@ table.release-timeline {
     padding: 0.75em 1em;
     font-size: 80%;
     line-height: 0.9;
-    border-collapse: separate;
-    border-spacing: 0 1px;
+    border-collapse: separate !important;
+    border-spacing: 0 1px !important;
     background-color: transparent;
-	border: 1px solid #a2a9b1;
+	border: 1px solid #a2a9b1 !important;
 	border-radius: 6px 6px 6px 6px;
 	display: table;
 }
@@ -73,7 +73,7 @@ table.release-timeline {
 .release-timeline th {
     text-align: right;
 	border: none;
-    padding: 0.4em;
+    padding: 0.4em !important;
     background: none;
     font: inherit;
     color: inherit;
@@ -85,7 +85,7 @@ table.release-timeline {
     vertical-align: inherit;
 	font-weight: bold;
 	border: none;
-    padding: 0.4em;
+    padding: 0.4em !important;
     background: none;
     font: inherit;
     color: inherit;
@@ -105,7 +105,7 @@ table.release-timeline {
 
 .release-timeline .td-separator {
 	border: none;
-	padding-top: 0px;
+	padding-top: 0px !important;
 }
 
 .release-timeline .line-separator {

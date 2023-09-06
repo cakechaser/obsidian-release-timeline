@@ -25,7 +25,18 @@ export default class WeekTimeline {
             dvResults = await dv.query(content);
             let dvResultsValues = dvResults.value.values;
 
-            dvResultsFiltered = dvResultsValues.filter( item => item[1].constructor.name == 'DateTime' )
+            //filter out null years
+            let a = dvResultsValues.filter( x => typeof x[1] !== 'undefined' && x[1] !== null );
+            
+            //filter out years without a date
+            let b = a.filter( x => !(typeof(x[1]) == 'number') );
+
+            //filter out incorrect dates
+            dvResultsFiltered = b.filter( x => moment( x[1].toString() ).format('YYYY-MM') != "Invalid date" );
+            
+            //convert all to moment
+            dvResultsFiltered.forEach( x => x[1] = moment(x[1].toString()) );
+
         }
         catch(error) { 
             return createErrorMsg("Error from dataview: " + error.message);
@@ -54,11 +65,12 @@ export default class WeekTimeline {
 
         dvResults.forEach(item => {
 
-            const datePart = item[1].c;
-            const yearPart = datePart.year;
-            const monthPart = datePart.month - 1;
-            const dayPart = datePart.day;
-            const momentDate = moment( { year: yearPart, month: monthPart, day: dayPart } );
+            //const datePart = item[1].c;
+            // const yearPart = datePart.year;
+            // const monthPart = datePart.month - 1;
+            // const dayPart = datePart.day;
+            // const momentDate = moment( { year: yearPart, month: monthPart, day: dayPart } );
+            const momentDate = item[1];
             const momentDateThursday = moment(momentDate).isoWeekday(4);
 
             const newYear = momentDateThursday.format('Y');

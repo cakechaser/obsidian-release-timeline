@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS: ReleaseTimelineSettings = {
     bulletPoints: true,
 	collapseLimit: '2',
 	collapseEmptyMonthsWeeklyTimeline: true,
-	weekDisplayFormat: 'weekNames'
+	weekDisplayFormat: 'dateNames'
 }
 
 export class SampleSettingTab extends PluginSettingTab {
