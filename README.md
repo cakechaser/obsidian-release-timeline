@@ -33,7 +33,7 @@ Query example:
 table 
 year_field, alias_field
 from [[CRPG]] and [[Isometric games]]
-where year_field > 2000
+where year_field > date(2000-01-01)
 sort desc
 ```
 ~~~
