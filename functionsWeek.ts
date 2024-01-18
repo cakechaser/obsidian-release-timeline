@@ -2,7 +2,7 @@ import ReleaseTimeline from "main";
 import { getAPI, isPluginEnabled, DataviewAPI, DateTime } from "obsidian-dataview";
 import { moment } from "obsidian";
 import { create } from "domain";
-import { createErrorMsg, createRowSeparator, createRowSeparatorYearMonth, createRowSeparatorWeek, createRowYear, createRowItem, createNewRow, parseQuerySortOrder } from "helperFunctions";
+import { createErrorMsg, createRowSeparator, createRowSeparatorYearMonth, createRowSeparatorWeek, createRowYear, createRowItem, createNewRow, parseQuerySortOrder, replaceThisInQuery } from "helperFunctions";
 import { weekdays } from "moment";
 
 export default class WeekTimeline {
@@ -22,6 +22,7 @@ export default class WeekTimeline {
         let dvResults;
         let dvResultsFiltered;
         try { 
+            content = replaceThisInQuery(content, this.plugin.app);
             dvResults = await dv.query(content);
             let dvResultsValues = dvResults.value.values;
 

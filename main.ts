@@ -1,6 +1,6 @@
 import { App, Editor, MarkdownPostProcessorContext, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { getAPI, isPluginEnabled, DataviewAPI } from "obsidian-dataview";
-import YearTimeline from "functionsYear2";
+import YearTimeline from "functionsYear";
 import MonthTimeline from "functionsMonth";
 import WeekTimeline from "functionsWeek";
 import { ReleaseTimelineSettings, DEFAULT_SETTINGS, SampleSettingTab } from "settings";

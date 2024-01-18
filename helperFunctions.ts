@@ -1,6 +1,8 @@
 import ReleaseTimeline from "main";
+import { App } from 'obsidian';
 
-export {createErrorMsg, createRowSeparator, createRowSeparatorYearMonth, createRowSeparatorWeek, createRowYear, createRowItem, createNewRow, parseQuerySortOrder };
+
+export {createErrorMsg, createRowSeparator, createRowSeparatorYearMonth, createRowSeparatorWeek, createRowYear, createRowItem, createNewRow, parseQuerySortOrder, replaceThisInQuery };
 
 function createErrorMsg(errorText) {
     const errorTbl = createEl("table", { cls: "release-timeline" } );
@@ -100,4 +102,26 @@ function parseQuerySortOrder(content: string, plugin:ReleaseTimeline) {
         return querySortOrder;
     }
 
+}
+
+function replaceThisInQuery(query: string, app: App) {
+
+    const regex = /([\n \(])this\./g;
+
+    let activeFileName = "";
+    try {
+        activeFileName = app.workspace.getActiveFile().basename;
+    }
+    catch(error) {
+        return query;
+    }
+    
+    const newQuery = query.replace(regex, (match, precedingChar) => {
+        return `${precedingChar}[[${activeFileName}]].`;
+    });
+
+    console.log(activeFileName);
+    console.log(newQuery);
+
+    return newQuery;
 }
