@@ -77,6 +77,7 @@ table.release-timeline {
     background: none;
     font: inherit;
     color: inherit;
+    vertical-align: middle;
 }
 
 .release-timeline td {
